@@ -12,6 +12,7 @@ import com.ballastlane.pokedex.domain.exception.CatalogUnavailableException;
 import com.ballastlane.pokedex.domain.exception.PokemonNotFoundException;
 import com.ballastlane.pokedex.domain.model.PageResult;
 import com.ballastlane.pokedex.domain.model.Pokemon;
+import com.ballastlane.pokedex.domain.model.PokemonName;
 import com.ballastlane.pokedex.domain.model.PokemonSummary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,19 @@ class PokeApiCatalogAdapterTest {
         assertThat(page.page()).isZero();
         assertThat(page.size()).isEqualTo(2);
         assertThat(page.items().get(0).category()).isEqualTo("Seed Pokémon");
+    }
+
+    @Test
+    void listsNamesWithIdAndSpriteAndSkipsEntriesWithoutAnId() {
+        when(client.names()).thenReturn(node("names-list"));
+
+        assertThat(adapter.listNames()).containsExactly(
+                new PokemonName(1, "bulbasaur",
+                        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"),
+                new PokemonName(25, "pikachu",
+                        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"),
+                new PokemonName(10080, "pikachu-rock-star",
+                        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10080.png"));
     }
 
     @Test

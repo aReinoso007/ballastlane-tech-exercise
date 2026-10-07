@@ -7,7 +7,7 @@ Target: ~20 min presentation + code review Q&A. Screen share: GitHub repo and ID
 | Criterion | Evidence |
 | --- | --- |
 | Clean Architecture | `backend/src/main/java/.../{domain,application,infrastructure,web}`, `ArchitectureTest`, `docs/architecture.md` |
-| Testing / TDD | Tests were written before the implementation in each step (domain, application, adapters, web); commits group a test suite with the code that makes it pass, `./gradlew test` (121 tests, Testcontainers), `npm test` (43 tests), JaCoCo report |
+| Testing / TDD | Tests were written before the implementation in each step (domain, application, adapters, web); commits group a test suite with the code that makes it pass, `./gradlew test` (143 tests, Testcontainers), `npm test` (50 tests), JaCoCo report |
 | Code quality | Small use-case classes, self-validating `Pokemon`, consistent problem+json, no controller logic |
 | Functionality | Live demo script below, no browser console warnings |
 | Presentation | This outline |
@@ -29,7 +29,7 @@ Target: ~20 min presentation + code review Q&A. Screen share: GitHub repo and ID
 ## Demo script
 
 1. `docker compose up --build` already running. Open http://localhost:3000.
-2. **US01**: scroll the grid (sprite, category, weight, abilities), go to page 2, search "eevee".
+2. **US01**: scroll the grid (sprite, category, weight, abilities), go to page 2, search with a typo ("charzard" finds Charizard) from the header.
 3. **US02**: Eevee detail - stats bars, description, branching evolution chain; click Vaporeon to navigate the lineage.
 4. Try saving while anonymous -> prompted to sign in. Sign in as `demo` / `Demo1234!`.
 5. **US03**: "Save to my Pokedex" on Eevee -> toast, button becomes "Saved locally". Open **My Pokemon**: seeded ten plus Eevee.

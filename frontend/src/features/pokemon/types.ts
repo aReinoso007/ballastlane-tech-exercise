@@ -36,3 +36,10 @@ export interface Pokemon {
   region: string | null
   tags: string[]
 }
+
+/** Suggestion returned by the typo-tolerant name search. */
+export interface PokemonName {
+  id: number
+  name: string
+  spriteUrl: string | null
+}

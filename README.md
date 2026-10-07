@@ -89,6 +89,7 @@ Backend tests, by layer:
 | Story | Endpoint(s) | Frontend |
 | --- | --- | --- |
 | US01 Paginated list (sprite, category, weight, abilities) | `GET /api/pokemon?page=&size=` | Home page |
+| Search with typo tolerance (name, partial name or number) | `GET /api/pokemon/search?q=&limit=` | Search box in the header |
 | US02 Detail (image, stats, description, evolutions) | `GET /api/pokemon/{idOrName}` | `/pokemon/:name` |
 | US03 Sync to local DB | `POST /api/local/pokemon/{idOrName}/sync`, `GET /api/local/pokemon[/{id}]` | "Save to my Pokedex", My Pokemon |
 | US04 Modify local data | `PUT` / `PATCH /api/local/pokemon/{id}`, `DELETE ...` | Edit page, delete dialog |

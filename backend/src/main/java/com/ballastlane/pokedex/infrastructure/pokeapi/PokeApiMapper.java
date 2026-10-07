@@ -13,6 +13,8 @@ final class PokeApiMapper {
 
     private static final String ARTWORK_URL =
             "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/%d.png";
+    private static final String SPRITE_URL =
+            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png";
 
     private PokeApiMapper() {
     }
@@ -62,6 +64,10 @@ final class PokeApiMapper {
             walk(chainDocument.get("chain"), 0, null, out);
         }
         return out;
+    }
+
+    static String spriteUrl(int id) {
+        return SPRITE_URL.formatted(id);
     }
 
     static int idFromUrl(String url) {

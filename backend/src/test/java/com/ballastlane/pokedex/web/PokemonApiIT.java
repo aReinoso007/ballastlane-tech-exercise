@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ballastlane.pokedex.domain.exception.CatalogUnavailableException;
 import com.ballastlane.pokedex.domain.exception.PokemonNotFoundException;
 import com.ballastlane.pokedex.domain.model.PageResult;
+import com.ballastlane.pokedex.domain.model.PokemonName;
 import com.ballastlane.pokedex.domain.model.PokemonSummary;
 import com.ballastlane.pokedex.support.Fixtures;
 import java.util.List;
@@ -33,6 +34,39 @@ class PokemonApiIT extends AbstractApiIT {
                 .andExpect(jsonPath("$.page").value(1))
                 .andExpect(jsonPath("$.totalItems").value(1302))
                 .andExpect(jsonPath("$.totalPages").value(651));
+    }
+
+    @Test
+    void suggestsPokemonDespiteTyposPublicly() throws Exception {
+        when(catalog.listNames()).thenReturn(List.of(
+                new PokemonName(25, "pikachu", "https://img/25.png"),
+                new PokemonName(26, "raichu", "https://img/26.png")));
+
+        mvc.perform(get("/api/pokemon/search").param("q", "pikachuu"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(25))
+                .andExpect(jsonPath("$[0].name").value("pikachu"))
+                .andExpect(jsonPath("$[0].spriteUrl").value("https://img/25.png"));
+    }
+
+    @Test
+    void searchWithoutQueryReturnsEmptyList() throws Exception {
+        mvc.perform(get("/api/pokemon/search")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void searchRejectsBadLimitAndOverlongQuery() throws Exception {
+        mvc.perform(get("/api/pokemon/search").param("q", "pika").param("limit", "999"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/pokemon/search").param("q", "a".repeat(60))).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void searchReportsBadGatewayWhenCatalogIsDown() throws Exception {
+        when(catalog.listNames()).thenThrow(new CatalogUnavailableException("down", null));
+
+        mvc.perform(get("/api/pokemon/search").param("q", "pika")).andExpect(status().isBadGateway());
     }
 
     @Test

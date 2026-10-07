@@ -5,6 +5,7 @@ import com.ballastlane.pokedex.application.pokemon.GetLocalPokemon;
 import com.ballastlane.pokedex.application.pokemon.GetPokemonDetail;
 import com.ballastlane.pokedex.application.pokemon.ListLocalPokemon;
 import com.ballastlane.pokedex.application.pokemon.ListPokemon;
+import com.ballastlane.pokedex.application.pokemon.SearchPokemon;
 import com.ballastlane.pokedex.application.pokemon.SyncPokemon;
 import com.ballastlane.pokedex.application.pokemon.UpdateLocalPokemon;
 import com.ballastlane.pokedex.application.user.AuthenticateUser;
@@ -24,6 +25,11 @@ public class UseCaseConfig {
     @Bean
     ListPokemon listPokemon(PokemonCatalogPort catalog) {
         return new ListPokemon(catalog);
+    }
+
+    @Bean
+    SearchPokemon searchPokemon(PokemonCatalogPort catalog) {
+        return new SearchPokemon(catalog);
     }
 
     @Bean

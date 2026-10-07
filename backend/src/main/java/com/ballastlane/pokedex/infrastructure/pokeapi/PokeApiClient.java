@@ -25,6 +25,12 @@ public class PokeApiClient {
         return get("/pokemon?limit={limit}&offset={offset}", "page", limit, offset);
     }
 
+    /** Every Pokemon name with its resource URL (one lightweight call, cached). */
+    @Cacheable("pokeapi-names")
+    public JsonNode names() {
+        return get("/pokemon?limit=100000&offset=0", "names");
+    }
+
     @Cacheable("pokeapi-pokemon")
     public JsonNode pokemon(String idOrName) {
         return get("/pokemon/{id}", idOrName, idOrName);

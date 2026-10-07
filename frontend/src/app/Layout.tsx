@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/useAuth'
+import { PokemonSearch } from '../features/pokemon/PokemonSearch'
 import { Button } from '../shared/ui/Button'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -16,6 +17,7 @@ export function Layout() {
           <Link to="/" className="text-xl font-extrabold tracking-tight">
             Pokedex
           </Link>
+          <PokemonSearch />
           <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
             <NavLink to="/" end className={linkClass}>
               Browse

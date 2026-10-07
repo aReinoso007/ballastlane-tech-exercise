@@ -67,6 +67,15 @@ class PokeApiClientTest {
         }
 
         @Test
+        void requestsTheWholeNameIndexInOneCall() {
+            server.expect(once(), requestTo(BASE + "/pokemon?limit=100000&offset=0"))
+                    .andRespond(withSuccess(raw("names-list"), MediaType.APPLICATION_JSON));
+
+            assertThat(client.names().path("results")).hasSize(4);
+            server.verify();
+        }
+
+        @Test
         void mapsHttp404ToNotFound() {
             server.expect(once(), requestTo(BASE + "/pokemon/nope")).andRespond(withStatus(HttpStatus.NOT_FOUND));
 

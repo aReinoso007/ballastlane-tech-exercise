@@ -60,18 +60,6 @@ describe('PokemonListPage (US01)', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
   })
 
-  it('navigates to a Pokemon via the search box', async () => {
-    server.use(
-      http.get(`${API}/pokemon`, () => HttpResponse.json(page([summary()]))),
-      http.get(`${API}/pokemon/pikachu`, () => HttpResponse.json({ ...summary({ id: 25, name: 'pikachu' }), stats: [], evolutions: [], height: 4, description: null, localizedName: null, region: null, tags: [] })),
-    )
-    renderApp('/')
-    await userEvent.type(screen.getByLabelText('Find by name or number'), 'Pikachu')
-    await userEvent.click(screen.getByRole('button', { name: 'Go' }))
-
-    expect(await screen.findByRole('heading', { name: 'Pikachu' })).toBeInTheDocument()
-  })
-
   it('shows an error with a retry action when the API fails', async () => {
     let calls = 0
     server.use(

@@ -4,6 +4,7 @@ import com.ballastlane.pokedex.domain.exception.CatalogUnavailableException;
 import com.ballastlane.pokedex.domain.exception.InvalidDataException;
 import com.ballastlane.pokedex.domain.model.PageResult;
 import com.ballastlane.pokedex.domain.model.Pokemon;
+import com.ballastlane.pokedex.domain.model.PokemonName;
 import com.ballastlane.pokedex.domain.model.PokemonSummary;
 import com.ballastlane.pokedex.domain.port.PokemonCatalogPort;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,6 +35,20 @@ public class PokeApiCatalogAdapter implements PokemonCatalogPort {
         }
         List<PokemonSummary> items = futures.stream().map(PokeApiCatalogAdapter::join).toList();
         return new PageResult<>(items, page, size, listing.path("count").asLong());
+    }
+
+    @Override
+    public List<PokemonName> listNames() {
+        List<PokemonName> names = new ArrayList<>();
+        for (JsonNode entry : client.names().path("results")) {
+            try {
+                int id = PokeApiMapper.idFromUrl(entry.path("url").asText());
+                names.add(new PokemonName(id, entry.path("name").asText(), PokeApiMapper.spriteUrl(id)));
+            } catch (NumberFormatException e) {
+                // An entry without a usable id cannot be opened later; skip it rather than fail the search.
+            }
+        }
+        return names;
     }
 
     @Override

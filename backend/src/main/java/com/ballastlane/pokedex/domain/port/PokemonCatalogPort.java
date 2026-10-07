@@ -2,13 +2,18 @@ package com.ballastlane.pokedex.domain.port;
 
 import com.ballastlane.pokedex.domain.model.PageResult;
 import com.ballastlane.pokedex.domain.model.Pokemon;
+import com.ballastlane.pokedex.domain.model.PokemonName;
 import com.ballastlane.pokedex.domain.model.PokemonSummary;
+import java.util.List;
 
 /** Outbound port to the remote Pokemon catalog (PokeAPI). */
 public interface PokemonCatalogPort {
 
     /** @param page zero-based page index */
     PageResult<PokemonSummary> list(int page, int size);
+
+    /** Every name in the catalog (id, name, sprite); lightweight and expected to be cached by the adapter. */
+    List<PokemonName> listNames();
 
     /**
      * @param idOrName numeric id or lower-case name

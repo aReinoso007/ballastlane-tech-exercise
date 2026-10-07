@@ -23,7 +23,7 @@ spring:
     locations: classpath:db/migration,classpath:db/seed
   cache:
     type: caffeine
-    cache-names: pokeapi-page,pokeapi-pokemon,pokeapi-species,pokeapi-evolution
+    cache-names: pokeapi-page,pokeapi-names,pokeapi-pokemon,pokeapi-species,pokeapi-evolution
     caffeine:
       spec: maximumSize=2000,expireAfterWrite=1h
 

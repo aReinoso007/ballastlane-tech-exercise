@@ -2,6 +2,9 @@ package com.ballastlane.pokedex.web;
 
 import com.ballastlane.pokedex.application.pokemon.GetPokemonDetail;
 import com.ballastlane.pokedex.application.pokemon.ListPokemon;
+import com.ballastlane.pokedex.application.pokemon.SearchPokemon;
+import com.ballastlane.pokedex.web.dto.PokemonNameResponse;
+import java.util.List;
 import com.ballastlane.pokedex.web.dto.PageResponse;
 import com.ballastlane.pokedex.web.dto.PokemonResponse;
 import com.ballastlane.pokedex.web.dto.PokemonSummaryResponse;
@@ -20,10 +23,19 @@ public class PokemonController {
 
     private final ListPokemon listPokemon;
     private final GetPokemonDetail getPokemonDetail;
+    private final SearchPokemon searchPokemon;
 
-    public PokemonController(ListPokemon listPokemon, GetPokemonDetail getPokemonDetail) {
+    public PokemonController(ListPokemon listPokemon, GetPokemonDetail getPokemonDetail, SearchPokemon searchPokemon) {
         this.listPokemon = listPokemon;
         this.getPokemonDetail = getPokemonDetail;
+        this.searchPokemon = searchPokemon;
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Typo-tolerant name search for suggestions (name, partial name or Pokedex number)")
+    public List<PokemonNameResponse> search(@RequestParam(name = "q", defaultValue = "") String query,
+                                            @RequestParam(defaultValue = "8") int limit) {
+        return searchPokemon.execute(query, limit).stream().map(PokemonNameResponse::from).toList();
     }
 
     @GetMapping
