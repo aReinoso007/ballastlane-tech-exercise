@@ -186,6 +186,13 @@ After the build, the agent ran the full Docker Compose stack and clicked through
    - Frontend: a header combobox (suggestions with sprite and number, debounced, keyboard support, Enter opens the best match, a "No Pokemon found" message, and a fallback to the exact name if the suggestion service is down). The list page no longer has its own search box.
    - Honest note on verification: I checked suggestions and the Enter flow in the browser. The browser tool's "press Enter" did not trigger the handler, but dispatching a real `keydown` event did and navigated correctly; the component tests cover the keyboard flow with `userEvent`.
 
+4. **"The tags I add when I customise a Pokemon should be reusable: if what I write is not already in my tags, it gets persisted."**
+   - Design decision: tags used to be a plain list per Pokemon, so "previously used" had no home. I added a `tag` table (the tag library), unique ignoring case, plus a `GET /api/local/tags` endpoint. A tag joins the library in the same transaction that saves a Pokemon carrying it, so the library and the Pokemon can never disagree. Deleting a Pokemon keeps its tags in the library on purpose, because the point is reuse.
+   - Consistency rule in the application layer: typing a known tag in another case ("FAVOURITE") reuses the stored spelling ("Favourite"), and the same tag typed twice is stored once. This was a unit test before it was code.
+   - Frontend: the comma separated text box became a tag input with chips, a suggestion list of unused library tags, a "Create ..." option for genuinely new ones, keyboard support (Enter, comma, arrows, Backspace) and no loss of half-typed text on Save.
+   - A mistake caught by running it against real data, not by the tests: I numbered the migration `V2`, but existing databases had already applied the demo seed as `V1000`, so Flyway refused to start ("detected resolved migration not applied", since version 2 is lower than an applied version 1000). Fresh databases and every test passed, so only the existing Docker volume exposed it. Fix: renamed it `V1001` with a comment explaining why. Lesson: test migrations against a database that already has data.
+   - Another small catch in the browser: clicking into the tag box when it was already focused did not reopen the suggestions, because no focus event fires; added a click handler.
+
 ### 6.4 What I take from this
 
 AI wrote most of the code, but the outcome depended on four things I did: giving it clean context, choosing the decisions that were mine (database, layout), insisting on guard-rails that fail loudly, and using the product myself and reporting what felt wrong. Each fix started from an observed symptom and a measured cause, not from a guess.

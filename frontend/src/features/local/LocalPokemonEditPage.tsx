@@ -13,7 +13,8 @@ import { Sprite } from '../pokemon/Sprite'
 import { StatBars } from '../pokemon/StatBars'
 import type { Pokemon } from '../pokemon/types'
 import { toFormState, toUpdate, validate, type FormErrors, type FormState } from './form'
-import { useLocalPokemon, useUpdatePokemon } from './hooks'
+import { TagInput } from './TagInput'
+import { useLocalPokemon, useTags, useUpdatePokemon } from './hooks'
 
 export function LocalPokemonEditPage() {
   const { id } = useParams()
@@ -45,6 +46,7 @@ function EditForm({ pokemon }: { pokemon: Pokemon }) {
   const navigate = useNavigate()
   const { notify } = useToast()
   const update = useUpdatePokemon(pokemon.id)
+  const tagLibrary = useTags()
   const [form, setForm] = useState<FormState>(() => toFormState(pokemon))
   const [errors, setErrors] = useState<FormErrors>({})
   const [serverErrors, setServerErrors] = useState<string[]>([])
@@ -111,8 +113,9 @@ function EditForm({ pokemon }: { pokemon: Pokemon }) {
             <TextField label="Localized name" value={form.localizedName} onChange={set('localizedName')} error={errors.localizedName} />
             <TextField label="Region" value={form.region} onChange={set('region')} error={errors.region} />
             <div className="sm:col-span-2">
-              <TextField label="Tags" value={form.tags} onChange={set('tags')} error={errors.tags}
-                hint="Comma separated, e.g. starter, favourite" />
+              <TagInput label="Tags" value={form.tags} library={tagLibrary.data ?? []}
+                onChange={(tags) => setForm((f) => ({ ...f, tags }))} error={errors.tags}
+                hint="Pick a tag you used before or type a new one and press Enter. New tags are remembered." />
             </div>
           </fieldset>
 

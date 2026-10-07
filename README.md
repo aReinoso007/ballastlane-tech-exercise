@@ -90,6 +90,7 @@ Backend tests, by layer:
 | --- | --- | --- |
 | US01 Paginated list (sprite, category, weight, abilities) | `GET /api/pokemon?page=&size=` | Home page |
 | Search with typo tolerance (name, partial name or number) | `GET /api/pokemon/search?q=&limit=` | Search box in the header |
+| Tag library: tags used before, offered for reuse (new tags are stored when a Pokemon is saved with them) | `GET /api/local/tags` (JWT) | Tags field on the edit page |
 | US02 Detail (image, stats, description, evolutions) | `GET /api/pokemon/{idOrName}` | `/pokemon/:name` |
 | US03 Sync to local DB | `POST /api/local/pokemon/{idOrName}/sync`, `GET /api/local/pokemon[/{id}]` | "Save to my Pokedex", My Pokemon |
 | US04 Modify local data | `PUT` / `PATCH /api/local/pokemon/{id}`, `DELETE ...` | Edit page, delete dialog |

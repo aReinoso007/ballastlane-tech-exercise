@@ -3,6 +3,7 @@ import {
   deleteLocalPokemon,
   fetchLocalPage,
   fetchLocalPokemon,
+  fetchTags,
   syncPokemon,
   updateLocalPokemon,
   type PokemonUpdate,
@@ -13,6 +14,7 @@ export const localKeys = {
   list: (page: number, size: number) => ['local', 'list', page, size] as const,
   ids: ['local', 'ids'] as const,
   detail: (id: number) => ['local', 'detail', id] as const,
+  tags: ['local', 'tags'] as const,
 }
 
 export function useLocalPage(page: number, size: number) {
@@ -37,6 +39,11 @@ export function useLocalPokemon(id: number) {
     queryKey: localKeys.detail(id),
     queryFn: ({ signal }) => fetchLocalPokemon(id, signal),
   })
+}
+
+/** The tag library; new tags appear here after a Pokemon is saved with them (all `local` queries are invalidated). */
+export function useTags() {
+  return useQuery({ queryKey: localKeys.tags, queryFn: ({ signal }) => fetchTags(signal), staleTime: 60_000 })
 }
 
 export function useSyncPokemon() {

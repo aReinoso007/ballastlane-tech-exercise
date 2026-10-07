@@ -177,4 +177,45 @@ class LocalPokemonApiIT extends AbstractApiIT {
     private static Map<String, Object> validPut() {
         return Map.of("name", "bulba", "height", 8, "weight", 80, "abilities", List.of("overgrow"));
     }
+
+    @Test
+    void newTagsJoinTheLibraryAndCanBeReusedIgnoringCase() throws Exception {
+        sync();
+        mvc.perform(get("/api/local/tags").header("Authorization", auth))
+                .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
+
+        mvc.perform(patch("/api/local/pokemon/1").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"tags\":[\"Favourite\",\"sleepy\"]}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/local/tags").header("Authorization", auth))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0]").value("Favourite"))
+                .andExpect(jsonPath("$[1]").value("sleepy"));
+
+        // typed again with another case: the stored spelling is reused and nothing duplicates
+        mvc.perform(patch("/api/local/pokemon/1").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"tags\":[\"FAVOURITE\",\"new one\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tags[0]").value("Favourite"))
+                .andExpect(jsonPath("$.tags[1]").value("new one"));
+        mvc.perform(get("/api/local/tags").header("Authorization", auth))
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    void tagsStayInTheLibraryAfterThePokemonIsDeleted() throws Exception {
+        sync();
+        mvc.perform(patch("/api/local/pokemon/1").header("Authorization", auth)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tags\":[\"keeper\"]}")).andExpect(status().isOk());
+        mvc.perform(delete("/api/local/pokemon/1").header("Authorization", auth)).andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/local/tags").header("Authorization", auth))
+                .andExpect(jsonPath("$[0]").value("keeper"));
+    }
+
+    @Test
+    void tagLibraryRequiresAuthentication() throws Exception {
+        mvc.perform(get("/api/local/tags")).andExpect(status().isUnauthorized());
+    }
 }

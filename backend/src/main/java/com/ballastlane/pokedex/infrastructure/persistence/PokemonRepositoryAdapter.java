@@ -17,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class PokemonRepositoryAdapter implements PokemonRepository {
 
     private final SpringDataPokemonRepository jpa;
+    private final SpringDataTagRepository tagLibrary;
 
-    public PokemonRepositoryAdapter(SpringDataPokemonRepository jpa) {
+    public PokemonRepositoryAdapter(SpringDataPokemonRepository jpa, SpringDataTagRepository tagLibrary) {
         this.jpa = jpa;
+        this.tagLibrary = tagLibrary;
     }
 
     @Override
@@ -46,6 +48,8 @@ public class PokemonRepositoryAdapter implements PokemonRepository {
     public Pokemon save(Pokemon pokemon) {
         PokemonEntity entity = jpa.findById(pokemon.id()).orElseGet(() -> new PokemonEntity(pokemon.id()));
         copyInto(entity, pokemon);
+        // Same transaction as the Pokemon: a tag is in the library if and only if some save used it.
+        pokemon.tags().forEach(tagLibrary::insertIfAbsent);
         return toDomain(jpa.saveAndFlush(entity));
     }
 

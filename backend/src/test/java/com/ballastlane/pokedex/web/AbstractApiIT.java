@@ -46,6 +46,7 @@ abstract class AbstractApiIT {
     @BeforeEach
     void cleanDatabase() {
         jdbc.update("delete from pokemon");
+        jdbc.update("delete from tag");
         jdbc.update("delete from app_user");
     }
 

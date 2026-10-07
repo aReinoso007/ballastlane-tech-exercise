@@ -69,7 +69,11 @@ describe('My Pokemon (US03/US04)', () => {
 })
 
 describe('Edit local Pokemon (US04)', () => {
-  const mockGet = () => server.use(http.get(`${API}/local/pokemon/1`, () => HttpResponse.json(pokemon())))
+  const mockGet = (library: string[] = [], tags: string[] = []) =>
+    server.use(
+      http.get(`${API}/local/pokemon/1`, () => HttpResponse.json(pokemon({ tags }))),
+      http.get(`${API}/local/tags`, () => HttpResponse.json(library)),
+    )
 
   it('pre-fills the form and sends a PUT with the edited values', async () => {
     mockGet()
@@ -85,7 +89,7 @@ describe('Edit local Pokemon (US04)', () => {
 
     expect(await screen.findByLabelText('Name')).toHaveValue('bulbasaur')
     await userEvent.type(screen.getByLabelText('Region'), 'Kanto')
-    await userEvent.type(screen.getByLabelText('Tags'), 'starter, grass')
+    await userEvent.type(screen.getByLabelText('Tags'), 'starter{Enter}grass{Enter}')
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
     expect(await screen.findByRole('heading', { name: 'My Pokemon' })).toBeInTheDocument()
@@ -94,6 +98,71 @@ describe('Edit local Pokemon (US04)', () => {
       description: 'A strange seed was planted on its back at birth.',
       abilities: ['overgrow', 'chlorophyll'], localizedName: null, region: 'Kanto', tags: ['starter', 'grass'],
     })
+  })
+
+  it('offers tags used before and reuses them, creating only genuinely new ones', async () => {
+    mockGet(['Favourite', 'sleepy', 'starter'], ['starter'])
+    let body: { tags: string[] } | undefined
+    server.use(
+      http.put(`${API}/local/pokemon/1`, async ({ request }) => {
+        body = (await request.json()) as { tags: string[] }
+        return HttpResponse.json(pokemon())
+      }),
+      http.get(`${API}/local/pokemon`, () => HttpResponse.json(page([pokemon()], 0, 10))),
+    )
+    renderApp('/my-pokemon/1/edit')
+
+    const tags = await screen.findByLabelText('Tags')
+    // The pokemon already has "starter"; the other library tags are offered.
+    await userEvent.click(tags)
+    expect(await screen.findByRole('option', { name: 'Favourite' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'sleepy' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'starter' })).not.toBeInTheDocument()
+
+    // Picking from the list reuses the tag as stored.
+    await userEvent.click(screen.getByRole('option', { name: 'sleepy' }))
+    // Typing a known tag in another case reuses the stored spelling instead of creating a variant.
+    await userEvent.type(tags, 'FAVOURITE{Enter}')
+    // Something unknown is offered as a new tag.
+    await userEvent.type(tags, 'brand new')
+    expect(screen.getByRole('option', { name: /Create “brand new”/ })).toBeInTheDocument()
+    await userEvent.keyboard('{Enter}')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await screen.findByRole('heading', { name: 'My Pokemon' })
+    expect(body?.tags).toEqual(['starter', 'sleepy', 'Favourite', 'brand new'])
+  })
+
+  it('keeps a tag that was typed but not confirmed when saving', async () => {
+    mockGet([], ['starter'])
+    let body: { tags: string[] } | undefined
+    server.use(
+      http.put(`${API}/local/pokemon/1`, async ({ request }) => {
+        body = (await request.json()) as { tags: string[] }
+        return HttpResponse.json(pokemon())
+      }),
+      http.get(`${API}/local/pokemon`, () => HttpResponse.json(page([pokemon()], 0, 10))),
+    )
+    renderApp('/my-pokemon/1/edit')
+
+    await userEvent.type(await screen.findByLabelText('Tags'), 'unfinished')
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await screen.findByRole('heading', { name: 'My Pokemon' })
+    expect(body?.tags).toEqual(['starter', 'unfinished'])
+  })
+
+  it('removes a tag with its x button or Backspace', async () => {
+    mockGet([], ['starter'])
+    renderApp('/my-pokemon/1/edit')
+    const tags = await screen.findByLabelText('Tags')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove starter' }))
+    expect(screen.queryByRole('button', { name: 'Remove starter' })).not.toBeInTheDocument()
+
+    await userEvent.type(tags, 'one{Enter}two{Enter}{Backspace}')
+    expect(screen.getByRole('button', { name: 'Remove one' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remove two' })).not.toBeInTheDocument()
   })
 
   it('blocks submission and explains client-side validation errors', async () => {

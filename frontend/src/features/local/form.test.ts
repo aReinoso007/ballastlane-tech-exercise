@@ -28,7 +28,7 @@ describe('local pokemon form', () => {
   it('flags invalid fields', () => {
     const errors = validate({
       ...valid(), name: ' ', height: '0', weight: '-3', abilities: '',
-      tags: Array.from({ length: 11 }, (_, i) => `t${i}`).join(','), region: 'x'.repeat(51),
+      tags: Array.from({ length: 11 }, (_, i) => `t${i}`), region: 'x'.repeat(51),
     })
     expect(Object.keys(errors).sort()).toEqual(['abilities', 'height', 'name', 'region', 'tags', 'weight'])
   })
@@ -39,7 +39,7 @@ describe('local pokemon form', () => {
   })
 
   it('sends blank optional fields as null', () => {
-    const update = toUpdate({ ...valid(), category: '  ', region: '', tags: '' })
+    const update = toUpdate({ ...valid(), category: '  ', region: '', tags: [] })
     expect(update.category).toBeNull()
     expect(update.region).toBeNull()
     expect(update.tags).toEqual([])

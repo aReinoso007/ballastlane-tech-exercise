@@ -22,6 +22,10 @@ public record PokemonEdit(
                 && abilities == null && localizedName == null && region == null && tags == null;
     }
 
+    public PokemonEdit withTags(List<String> newTags) {
+        return new PokemonEdit(name, height, weight, category, description, abilities, localizedName, region, newTags);
+    }
+
     public static Builder builder() {
         return new Builder();
     }

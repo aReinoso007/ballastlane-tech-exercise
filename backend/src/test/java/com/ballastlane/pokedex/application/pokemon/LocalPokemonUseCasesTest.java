@@ -13,6 +13,7 @@ import com.ballastlane.pokedex.domain.model.PokemonEdit;
 import com.ballastlane.pokedex.domain.port.PokemonCatalogPort;
 import com.ballastlane.pokedex.support.Fixtures;
 import com.ballastlane.pokedex.support.InMemoryPokemonRepository;
+import com.ballastlane.pokedex.support.InMemoryTagRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -126,11 +127,13 @@ class LocalPokemonUseCasesTest {
     class UpdateLocalPokemonTest {
 
         private UpdateLocalPokemon useCase;
+        private InMemoryTagRepository tagLibrary;
 
         @BeforeEach
         void seed() {
             repository.save(Fixtures.bulbasaur());
-            useCase = new UpdateLocalPokemon(repository);
+            tagLibrary = new InMemoryTagRepository().with("Favourite", "starter");
+            useCase = new UpdateLocalPokemon(repository, tagLibrary);
         }
 
         @Test
@@ -140,6 +143,39 @@ class LocalPokemonUseCasesTest {
             assertThat(updated.region()).isEqualTo("Kanto");
             assertThat(updated.name()).isEqualTo("bulbasaur");
             assertThat(repository.findById(1).orElseThrow().tags()).containsExactly("starter");
+        }
+
+        @Test
+        void tagsAlreadyInTheLibraryKeepTheirStoredSpellingWhateverTheCase() {
+            Pokemon updated = useCase.patch(1,
+                    PokemonEdit.builder().tags(List.of("favourite", "STARTER", "brand new")).build());
+
+            assertThat(updated.tags()).containsExactly("Favourite", "starter", "brand new");
+        }
+
+        @Test
+        void sameTagTypedTwiceWithDifferentCaseIsStoredOnce() {
+            Pokemon updated = useCase.patch(1, PokemonEdit.builder().tags(List.of("Rare", "rare", " RARE ")).build());
+
+            assertThat(updated.tags()).containsExactly("Rare");
+        }
+
+        @Test
+        void replaceAlsoReusesKnownTags() {
+            Pokemon updated = useCase.replace(1, PokemonEdit.builder()
+                    .name("bulbasaur").height(7).weight(69).abilities(List.of("overgrow"))
+                    .tags(List.of("FAVOURITE")).build());
+
+            assertThat(updated.tags()).containsExactly("Favourite");
+        }
+
+        @Test
+        void patchWithoutTagsLeavesTagsAndLibraryUntouched() {
+            repository.save(Fixtures.bulbasaur().applyPartial(PokemonEdit.builder().tags(List.of("grass")).build()));
+
+            Pokemon updated = useCase.patch(1, PokemonEdit.builder().region("Kanto").build());
+
+            assertThat(updated.tags()).containsExactly("grass");
         }
 
         @Test
@@ -176,6 +212,15 @@ class LocalPokemonUseCasesTest {
         void replaceOnMissingPokemonThrowsNotFound() {
             assertThatThrownBy(() -> useCase.replace(404, PokemonEdit.builder().build()))
                     .isInstanceOf(PokemonNotFoundException.class);
+        }
+    }
+
+    @Nested
+    class ListTagsTest {
+
+        @Test
+        void returnsTheLibrary() {
+            assertThat(new ListTags(new InMemoryTagRepository().with("a", "b")).execute()).containsExactly("a", "b");
         }
     }
 }

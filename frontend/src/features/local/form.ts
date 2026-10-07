@@ -11,7 +11,7 @@ export interface FormState {
   abilities: string
   localizedName: string
   region: string
-  tags: string
+  tags: string[]
 }
 
 export type FormErrors = Partial<Record<keyof FormState, string>>
@@ -32,7 +32,7 @@ export function toFormState(pokemon: Pokemon): FormState {
     abilities: pokemon.abilities.join(', '),
     localizedName: pokemon.localizedName ?? '',
     region: pokemon.region ?? '',
-    tags: pokemon.tags.join(', '),
+    tags: pokemon.tags
   }
 }
 
@@ -52,9 +52,8 @@ export function validate(form: FormState): FormErrors {
   else if (abilities.some((a) => a.length > 60)) errors.abilities = 'Each ability must be at most 60 characters'
   if (form.localizedName.length > 100) errors.localizedName = 'Localized name must be at most 100 characters'
   if (form.region.length > 50) errors.region = 'Region must be at most 50 characters'
-  const tags = splitList(form.tags)
-  if (tags.length > 10) errors.tags = 'At most 10 tags'
-  else if (tags.some((t) => t.length > 30)) errors.tags = 'Each tag must be at most 30 characters'
+  if (form.tags.length > 10) errors.tags = 'At most 10 tags'
+  else if (form.tags.some((t) => t.length > 30)) errors.tags = 'Each tag must be at most 30 characters'
   return errors
 }
 
@@ -70,6 +69,6 @@ export function toUpdate(form: FormState): PokemonUpdate {
     abilities: splitList(form.abilities),
     localizedName: emptyToNull(form.localizedName),
     region: emptyToNull(form.region),
-    tags: splitList(form.tags),
+    tags: form.tags,
   }
 }

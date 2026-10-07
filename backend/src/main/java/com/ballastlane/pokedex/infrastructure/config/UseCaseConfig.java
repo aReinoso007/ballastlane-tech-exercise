@@ -5,6 +5,7 @@ import com.ballastlane.pokedex.application.pokemon.GetLocalPokemon;
 import com.ballastlane.pokedex.application.pokemon.GetPokemonDetail;
 import com.ballastlane.pokedex.application.pokemon.ListLocalPokemon;
 import com.ballastlane.pokedex.application.pokemon.ListPokemon;
+import com.ballastlane.pokedex.application.pokemon.ListTags;
 import com.ballastlane.pokedex.application.pokemon.SearchPokemon;
 import com.ballastlane.pokedex.application.pokemon.SyncPokemon;
 import com.ballastlane.pokedex.application.pokemon.UpdateLocalPokemon;
@@ -13,6 +14,7 @@ import com.ballastlane.pokedex.application.user.RegisterUser;
 import com.ballastlane.pokedex.domain.port.PasswordHasher;
 import com.ballastlane.pokedex.domain.port.PokemonCatalogPort;
 import com.ballastlane.pokedex.domain.port.PokemonRepository;
+import com.ballastlane.pokedex.domain.port.TagRepository;
 import com.ballastlane.pokedex.domain.port.TokenIssuer;
 import com.ballastlane.pokedex.domain.port.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +55,13 @@ public class UseCaseConfig {
     }
 
     @Bean
-    UpdateLocalPokemon updateLocalPokemon(PokemonRepository repository) {
-        return new UpdateLocalPokemon(repository);
+    UpdateLocalPokemon updateLocalPokemon(PokemonRepository repository, TagRepository tags) {
+        return new UpdateLocalPokemon(repository, tags);
+    }
+
+    @Bean
+    ListTags listTags(TagRepository tags) {
+        return new ListTags(tags);
     }
 
     @Bean

@@ -24,7 +24,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Import({PokemonRepositoryAdapter.class, UserRepositoryAdapter.class})
+@Import({PokemonRepositoryAdapter.class, UserRepositoryAdapter.class, TagRepositoryAdapter.class})
 class PersistenceIT {
 
     @DynamicPropertySource
@@ -38,6 +38,9 @@ class PersistenceIT {
     @Autowired
     UserRepositoryAdapter users;
 
+    @Autowired
+    TagRepositoryAdapter tagLibrary;
+
     @Test
     void savesAndLoadsAllPokemonDataIncludingCollectionsInOrder() {
         pokemon.save(Fixtures.bulbasaur());
@@ -47,6 +50,14 @@ class PersistenceIT {
         assertThat(loaded).isEqualTo(Fixtures.bulbasaur());
         assertThat(loaded.abilities()).containsExactly("overgrow", "chlorophyll");
         assertThat(loaded.evolutions()).hasSize(2);
+    }
+
+    @Test
+    void savingAPokemonAddsItsTagsToTheLibraryOnceIgnoringCase() {
+        pokemon.save(Fixtures.bulbasaur().applyPartial(PokemonEdit.builder().tags(List.of("Starter", "grass")).build()));
+        pokemon.save(Fixtures.pikachu().applyPartial(PokemonEdit.builder().tags(List.of("starter", "electric")).build()));
+
+        assertThat(tagLibrary.findAll()).containsExactly("electric", "grass", "Starter");
     }
 
     @Test

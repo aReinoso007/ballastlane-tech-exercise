@@ -28,3 +28,6 @@ export const updateLocalPokemon = (id: number, update: PokemonUpdate): Promise<P
 
 export const deleteLocalPokemon = (id: number): Promise<void> =>
   request(`/local/pokemon/${id}`, { method: 'DELETE' })
+
+/** Tags used before on any local Pokemon, offered for reuse. */
+export const fetchTags = (signal?: AbortSignal): Promise<string[]> => request('/local/tags', { signal })
