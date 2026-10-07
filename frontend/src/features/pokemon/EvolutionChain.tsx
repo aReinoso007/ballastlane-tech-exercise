@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { capitalize } from '../../shared/lib/format'
+import { usePrefetchPokemon } from './hooks'
 import { Sprite } from './Sprite'
 import type { EvolutionStage } from './types'
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function EvolutionChain({ stages, currentName, linkable = true }: Props) {
+  const prefetch = usePrefetchPokemon()
   if (stages.length <= 1) {
     return <p className="text-sm text-slate-500">This Pokemon does not evolve.</p>
   }
@@ -35,7 +37,12 @@ export function EvolutionChain({ stages, currentName, linkable = true }: Props) 
               return (
                 <li key={member.id}>
                   {linkable && !isCurrent ? (
-                    <Link to={`/pokemon/${member.name}`} className={`${classes} hover:ring-brand`}>
+                    <Link
+                      to={`/pokemon/${member.name}`}
+                      className={`${classes} hover:ring-brand`}
+                      onMouseEnter={() => prefetch(member.name)}
+                      onFocus={() => prefetch(member.name)}
+                    >
                       {body}
                     </Link>
                   ) : (

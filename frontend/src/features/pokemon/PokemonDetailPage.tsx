@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../../shared/api/http'
 import { capitalize, formatHeight, formatWeight } from '../../shared/lib/format'
@@ -11,11 +12,20 @@ import { useLocalPokemonIds, useSyncPokemon } from '../local/hooks'
 import { EvolutionChain } from './EvolutionChain'
 import { Sprite } from './Sprite'
 import { StatBars } from './StatBars'
-import { usePokemonDetail } from './hooks'
+import { usePokemonDetail, usePrefetchPokemon } from './hooks'
 
 export function PokemonDetailPage() {
   const { idOrName = '' } = useParams()
-  const { data: pokemon, error, isPending, refetch } = usePokemonDetail(idOrName)
+  const { data: pokemon, error, isPending, isPlaceholderData, refetch } = usePokemonDetail(idOrName)
+  const prefetch = usePrefetchPokemon()
+
+  // Once a Pokemon is on screen, warm its whole evolution line in the background.
+  useEffect(() => {
+    if (!pokemon || isPlaceholderData) return
+    pokemon.evolutions.forEach((stage) => {
+      if (stage.name !== pokemon.name) prefetch(stage.name)
+    })
+  }, [pokemon, isPlaceholderData, prefetch])
 
   if (isPending) return <Spinner label="Loading Pokemon" />
   if (error) {
@@ -34,7 +44,10 @@ export function PokemonDetailPage() {
   }
 
   return (
-    <article className="space-y-6">
+    <article
+      className={`space-y-6 transition-opacity ${isPlaceholderData ? 'opacity-60' : ''}`}
+      aria-busy={isPlaceholderData}
+    >
       <Link to="/" className="text-sm font-medium text-brand hover:underline">
         ← Back to list
       </Link>
@@ -63,7 +76,7 @@ export function PokemonDetailPage() {
               </li>
             ))}
           </ul>
-          <SaveLocally pokemonId={pokemon.id} name={pokemon.name} />
+          <SaveLocally key={pokemon.id} pokemonId={pokemon.id} name={pokemon.name} />
         </div>
       </header>
 

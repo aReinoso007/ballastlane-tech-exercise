@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { page, pokemon, signIn } from '../../test/fixtures'
 import { renderApp } from '../../test/render'
 import { API, server } from '../../test/server'
@@ -28,6 +28,54 @@ describe('PokemonDetailPage (US02)', () => {
 
     const evolution = screen.getByRole('list', { name: 'Evolution lineage' })
     expect(within(evolution).getByRole('link', { name: /ivysaur/i })).toHaveAttribute('href', '/pokemon/ivysaur')
+  })
+
+  it('keeps the current Pokemon on screen while the next evolution loads', async () => {
+    let releaseIvysaur: () => void = () => {}
+    const gate = new Promise<void>((resolve) => (releaseIvysaur = resolve))
+    server.use(
+      http.get(`${API}/pokemon/bulbasaur`, () => HttpResponse.json(pokemon())),
+      http.get(`${API}/pokemon/ivysaur`, async () => {
+        await gate
+        return HttpResponse.json(pokemon({ id: 2, name: 'ivysaur' }))
+      }),
+    )
+    renderApp('/pokemon/bulbasaur')
+    await screen.findByRole('heading', { name: 'Bulbasaur' })
+
+    await userEvent.click(within(screen.getByRole('list', { name: 'Evolution lineage' })).getByRole('link', { name: /ivysaur/i }))
+
+    // Still showing Bulbasaur (dimmed), no spinner and no blank page.
+    expect(screen.getByRole('heading', { name: 'Bulbasaur' })).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+
+    releaseIvysaur()
+    expect(await screen.findByRole('heading', { name: 'Ivysaur' })).toBeInTheDocument()
+  })
+
+  it('prefetches the rest of the evolution line so later navigation is instant', async () => {
+    const requested: string[] = []
+    server.use(
+      http.get(`${API}/pokemon/bulbasaur`, () =>
+        HttpResponse.json(
+          pokemon({
+            evolutions: [
+              { id: 1, name: 'bulbasaur', spriteUrl: null, stage: 0, evolvesFrom: null },
+              { id: 2, name: 'ivysaur', spriteUrl: null, stage: 1, evolvesFrom: 'bulbasaur' },
+              { id: 3, name: 'venusaur', spriteUrl: null, stage: 2, evolvesFrom: 'ivysaur' },
+            ],
+          }),
+        ),
+      ),
+      http.get(`${API}/pokemon/:name`, ({ params }) => {
+        requested.push(String(params.name))
+        return HttpResponse.json(pokemon({ id: 2, name: String(params.name) }))
+      }),
+    )
+    renderApp('/pokemon/bulbasaur')
+    await screen.findByRole('heading', { name: 'Bulbasaur' })
+
+    await vi.waitFor(() => expect(requested).toEqual(expect.arrayContaining(['ivysaur', 'venusaur'])))
   })
 
   it('says when a Pokemon does not evolve', async () => {

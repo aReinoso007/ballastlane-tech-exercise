@@ -7,7 +7,7 @@ Target: ~20 min presentation + code review Q&A. Screen share: GitHub repo and ID
 | Criterion | Evidence |
 | --- | --- |
 | Clean Architecture | `backend/src/main/java/.../{domain,application,infrastructure,web}`, `ArchitectureTest`, `docs/architecture.md` |
-| Testing / TDD | Tests were written before the implementation in each step (domain, application, adapters, web); commits group a test suite with the code that makes it pass, `./gradlew test` (121 tests, Testcontainers), `npm test` (41 tests), JaCoCo report |
+| Testing / TDD | Tests were written before the implementation in each step (domain, application, adapters, web); commits group a test suite with the code that makes it pass, `./gradlew test` (121 tests, Testcontainers), `npm test` (43 tests), JaCoCo report |
 | Code quality | Small use-case classes, self-validating `Pokemon`, consistent problem+json, no controller logic |
 | Functionality | Live demo script below, no browser console warnings |
 | Presentation | This outline |

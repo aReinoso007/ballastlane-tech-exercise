@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom'
 import { capitalize, formatWeight } from '../../shared/lib/format'
+import { usePrefetchPokemon } from './hooks'
 import { Sprite } from './Sprite'
 import type { PokemonSummary } from './types'
 
 export function PokemonCard({ pokemon }: { pokemon: PokemonSummary }) {
+  const prefetch = usePrefetchPokemon()
   return (
     <li>
       <Link
         to={`/pokemon/${pokemon.name}`}
+        onMouseEnter={() => prefetch(pokemon.name)}
+        onFocus={() => prefetch(pokemon.name)}
         className="flex h-full flex-col rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition hover:shadow-md hover:ring-brand focus-visible:outline-2 focus-visible:outline-brand"
       >
         <div className="flex items-center justify-between text-xs text-slate-500">
