@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: pokedex-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pokedex}
+    username: ${DB_USER:pokedex}
+    password: ${DB_PASSWORD:pokedex}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_batch_fetch_size: 50
+  flyway:
+    # db/seed holds demo data (pre-synced Pokemon). Tests only use db/migration.
+    locations: classpath:db/migration,classpath:db/seed
+  cache:
+    type: caffeine
+    cache-names: pokeapi-page,pokeapi-pokemon,pokeapi-species,pokeapi-evolution
+    caffeine:
+      spec: maximumSize=2000,expireAfterWrite=1h
+
+pokeapi:
+  base-url: ${POKEAPI_BASE_URL:https://pokeapi.co/api/v2}
+  timeout-seconds: 10
+
+app:
+  jwt:
+    # HS256 requires at least 32 bytes. Override with JWT_SECRET in any real deployment.
+    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  seed:
+    demo-user:
+      enabled: ${SEED_DEMO_USER:true}
+      username: demo
+      email: demo@ballastlane.dev
+      password: Demo1234!
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,22 @@
+# Gradle / Java
+.gradle/
+build/
+out/
+*.class
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+
+# IDEs / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store

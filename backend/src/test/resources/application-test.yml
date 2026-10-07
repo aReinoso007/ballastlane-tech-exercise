@@ -1,0 +1,11 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+
+app:
+  seed:
+    demo-user:
+      enabled: false
+
+pokeapi:
+  base-url: http://localhost:0
