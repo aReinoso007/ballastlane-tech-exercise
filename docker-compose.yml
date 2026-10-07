@@ -1,12 +1,14 @@
+# Full stack:   docker compose up --build
+# Database only (for local development):   docker compose up -d postgres
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: pokedex
       POSTGRES_USER: pokedex
-      POSTGRES_PASSWORD: pokedex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pokedex}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -14,6 +16,30 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/pokedex
+      DB_USER: pokedex
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-pokedex}
+      JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me}
+      SERVER_PORT: "8089"
+      CORS_ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      SEED_DEMO_USER: "true"
+    ports:
+      - "${BACKEND_PORT:-8089}:8089"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
   pgdata:
