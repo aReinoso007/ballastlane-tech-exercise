@@ -1,0 +1,7 @@
+{
+  "id": 2,
+  "name": "ivysaur",
+  "genera": [{"genus": "Seed Pokémon", "language": {"name": "en"}}],
+  "flavor_text_entries": [{"flavor_text": "When the bulb on its back grows large, it appears to lose the ability to stand on its hind legs.", "language": {"name": "en"}}],
+  "evolution_chain": {"url": "https://pokeapi.co/api/v2/evolution-chain/1/"}
+}

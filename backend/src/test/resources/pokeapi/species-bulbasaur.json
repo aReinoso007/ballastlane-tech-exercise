@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "name": "bulbasaur",
+  "genera": [
+    {"genus": "Graine", "language": {"name": "fr"}},
+    {"genus": "Seed Pokémon", "language": {"name": "en"}}
+  ],
+  "flavor_text_entries": [
+    {"flavor_text": "Una rara semilla.", "language": {"name": "es"}},
+    {"flavor_text": "A strange seed was\nplanted on its back at\fbirth. The plant sprouts\nand grows with this POKéMON.", "language": {"name": "en"}},
+    {"flavor_text": "Another english entry.", "language": {"name": "en"}}
+  ],
+  "evolution_chain": {"url": "https://pokeapi.co/api/v2/evolution-chain/1/"}
+}

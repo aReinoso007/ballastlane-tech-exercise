@@ -1,0 +1,10 @@
+{
+  "id": 2,
+  "name": "ivysaur",
+  "height": 10,
+  "weight": 130,
+  "abilities": [{"ability": {"name": "overgrow"}, "is_hidden": false, "slot": 1}],
+  "stats": [{"base_stat": 60, "stat": {"name": "hp"}}],
+  "species": {"name": "ivysaur", "url": "https://pokeapi.co/api/v2/pokemon-species/2/"},
+  "sprites": {"front_default": "https://sprites/front/2.png", "other": {"official-artwork": {"front_default": "https://sprites/artwork/2.png"}}}
+}
