@@ -48,9 +48,11 @@ describe('PokemonDetailPage (US02)', () => {
     // Still showing Bulbasaur (dimmed), no spinner and no blank page.
     expect(screen.getByRole('heading', { name: 'Bulbasaur' })).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Loading next Pokemon' })).toBeInTheDocument()
 
     releaseIvysaur()
     expect(await screen.findByRole('heading', { name: 'Ivysaur' })).toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
   it('prefetches the rest of the evolution line so later navigation is instant', async () => {

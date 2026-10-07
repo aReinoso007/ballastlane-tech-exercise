@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { fetchPokemon, fetchPokemonPage } from './api'
+import type { Pokemon } from './types'
 
 export const pokemonKeys = {
   list: (page: number, size: number) => ['pokemon', 'list', page, size] as const,
@@ -37,7 +38,11 @@ export function usePrefetchPokemon() {
   const queryClient = useQueryClient()
   return useCallback(
     (idOrName: string) => {
-      void queryClient.prefetchQuery(detailOptions(idOrName))
+      void queryClient.prefetchQuery(detailOptions(idOrName)).then(() => {
+        // Also warm the browser's image cache so the sprite is there when the page swaps.
+        const sprite = queryClient.getQueryData<Pokemon>(pokemonKeys.detail(idOrName))?.spriteUrl
+        if (sprite && typeof Image !== 'undefined') new Image().src = sprite
+      })
     },
     [queryClient],
   )

@@ -44,10 +44,12 @@ export function PokemonDetailPage() {
   }
 
   return (
-    <article
-      className={`space-y-6 transition-opacity ${isPlaceholderData ? 'opacity-60' : ''}`}
-      aria-busy={isPlaceholderData}
-    >
+    <article className="space-y-6" aria-busy={isPlaceholderData}>
+      {isPlaceholderData && (
+        <div className="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden" role="progressbar" aria-label="Loading next Pokemon">
+          <div className="route-progress h-full w-full bg-brand" />
+        </div>
+      )}
       <Link to="/" className="text-sm font-medium text-brand hover:underline">
         ← Back to list
       </Link>

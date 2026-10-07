@@ -142,6 +142,42 @@ Typical problems in first-pass AI output, and the fix applied:
 - **Edge cases covered by tests**: empty/whitespace title, 121-char title, unknown status, malformed JSON, unknown JSON fields, non-UUID path id, pagination bounds (negative page, size 0 or too large), deleting twice, updating a deleted task, concurrent updates (optimistic locking with `@Version`), unauthenticated access to each endpoint.
 - **What AI is not trusted with**: security configuration and anything touching secrets get a manual review every time; AI output is a draft, I own the result.
 
-## 6. How the same approach was used in this repository
+## 6. How this repository was actually built (process log)
 
-The Pokedex project follows the same loop: write the architecture and rules into the prompt, ask for failing tests first, review diffs, then add guard-rails (ArchUnit, integration tests against real Postgres, browser smoke test) so that correctness does not depend on trusting the generated code. Examples where review mattered: the duplicate `TokenIssuer` bean that only the full-context integration tests caught, the ArchUnit pattern `..web..` that accidentally matched `org.springframework.web`, and the dev ports that were already taken on the machine.
+This section is the real story of the Pokedex project, not a template. Tool: Cursor, Plan mode first, then Agent mode.
+
+### 6.1 Context first, then a plan
+
+1. I converted the exercise PDF to Markdown and deleted everything that was not needed for the coding task, so the agent only sees requirements and not noise.
+2. I opened the agent in **Plan mode** and gave it one prompt: *"I want to tackle the following exercise described in @documentation.md, check it out and generate a plan to achieve this. I want a mono-repo with the name ballastlane-tech-exercise. I have already scaffolded the Java application, check that all is good and well."*
+3. The agent reviewed my scaffold and asked two questions that were mine to decide: which relational database (I chose PostgreSQL) and the repo layout (a new `ballastlane-tech-exercise` folder, copying only the useful parts of my scaffold and leaving the old folder untouched).
+4. I reviewed the plan and approved it with explicit rules: implement it as written, do not edit the plan file, work through the existing to-do list in order, and do not stop until every item is done.
+
+### 6.2 Implementation loop
+
+The agent worked layer by layer (domain and application, infrastructure, web, frontend, delivery). After each layer it ran the tests and committed. Guard-rails did the checking so I did not have to trust the generated code: ArchUnit for the dependency rule, Testcontainers against real PostgreSQL, MockMvc for the API contract, MSW for the frontend.
+
+Things the agent got wrong and that the guard-rails or running the app exposed:
+
+- The ArchUnit pattern `..web..` also matched `org.springframework.web`, so the rule checked the wrong thing. Fixed with fully qualified package names.
+- A test configuration was picked up by component scanning and caused a duplicate-bean error. Fixed with `@TestConfiguration`.
+- Two beans implemented `TokenIssuer`, which caused a `NoUniqueBeanDefinitionException`. Removed the extra bean.
+- Ports 8080 and 8081 were already taken on my machine, so the default API port became 8089.
+- The Docker base image had no arm64 build; switched to a multi-arch image.
+- A first draft of the docs claimed tests were written before the code in the commit history. Commits group tests with the code that makes them pass, so the claim was softened to what is true.
+
+### 6.3 Verification and my follow-up requests
+
+After the build, the agent ran the full Docker Compose stack and clicked through the UI in the browser while capturing console errors and warnings (none). Then I used the app myself and sent follow-up requests:
+
+1. **"Whenever I search for a new Pokemon, as I go through the evolutions there is a brief second where the screen goes blank with a loading screen. After I have gone through them there is no flickering."**
+   - Diagnosis: the first visit to each Pokemon is a cache miss in both TanStack Query and the backend (which calls PokeAPI). The detail page returned a full-page spinner while waiting. Later visits were cached, which explains why it only happened once per Pokemon.
+   - Fix: keep the previous Pokemon on screen while the next one loads (`placeholderData: keepPreviousData`), and prefetch the rest of the evolution line, plus hover/focus prefetch on links and cards. Two tests were added.
+2. **"The flicker is still there when I switch between evolutions on a new Pokemon, data that is not cached."**
+   - Diagnosis, this time measured instead of guessed: my running container was still serving the build from before the first fix, so I rebuilt it and recorded the page state with a `MutationObserver` during an uncached evolution click. The blank page and spinner were gone, but two smaller effects remained: dimming and un-dimming the page, and the sprite showing an empty box while the new image downloaded.
+   - Fix: removed the dimming, added a thin progress bar that only appears after 250 ms (so quick loads never flash it), made sprites fade in over a placeholder, and warmed the browser image cache during prefetch. Re-measured: the page always had a heading, never a spinner.
+   - Lesson I would repeat: a unit test proves the logic, but UI smoothness has to be checked in the real running build. The same check also showed the frontend container reported "unhealthy" because its healthcheck used `localhost`, which resolves to IPv6 inside the image while nginx listens on IPv4. Switched it to `127.0.0.1`.
+
+### 6.4 What I take from this
+
+AI wrote most of the code, but the outcome depended on four things I did: giving it clean context, choosing the decisions that were mine (database, layout), insisting on guard-rails that fail loudly, and using the product myself and reporting what felt wrong. Each fix started from an observed symptom and a measured cause, not from a guess.
