@@ -1,7 +1,6 @@
 package com.ballastlane.pokedex.infrastructure.security;
 
 import com.ballastlane.pokedex.domain.port.PasswordHasher;
-import com.ballastlane.pokedex.domain.port.TokenIssuer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Duration;
@@ -41,11 +40,6 @@ public class SecurityConfig {
     @Bean
     JwtService jwtService(JwtProperties props, Clock clock) {
         return new JwtService(props.secret(), Duration.ofMinutes(props.expirationMinutes()), clock);
-    }
-
-    @Bean
-    TokenIssuer tokenIssuer(JwtService jwtService) {
-        return jwtService;
     }
 
     @Bean

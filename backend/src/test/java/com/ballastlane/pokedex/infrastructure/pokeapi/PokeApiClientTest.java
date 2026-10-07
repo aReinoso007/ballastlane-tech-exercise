@@ -20,7 +20,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -112,7 +112,7 @@ class PokeApiClientTest {
         }
     }
 
-    @Configuration
+    @TestConfiguration
     @EnableCaching
     static class CachingConfig {
 

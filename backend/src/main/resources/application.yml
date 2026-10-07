@@ -5,6 +5,9 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/pokedex}
     username: ${DB_USER:pokedex}
     password: ${DB_PASSWORD:pokedex}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
   jpa:
     open-in-view: false
     hibernate:
